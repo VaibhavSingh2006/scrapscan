@@ -314,7 +314,7 @@ async function sendMsg(prefill) {
   try {
     var API_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api/chat'
-  : 'https://scrapscan-api.onrender.com/api/chat';
+  : 'https://scrapscan.onrender.com/api/chat';
 
 var res = await fetch(API_URL, {
   method: 'POST',

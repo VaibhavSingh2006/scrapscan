@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScrapScan — AI Scrap Identifier</title>
+    <link rel="stylesheet" href="css/main.css?v=14" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-logo" onclick="goHome()">
+        <div class="nav-logo-box">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+        </div>
+        <span class="nav-logo-name">ScrapScan</span>
+      </div>
+      <div class="nav-center">
+        <span class="nav-tag">AI Material Identifier</span>
+        <span class="nav-tag">MobileNet v2</span>
+        <span class="nav-tag">100% Local</span>
+      </div>
+      <div class="nav-status">
+        <div class="dot loading" id="modelDot"></div>
+        <span id="modelLabel">Loading model...</span>
+      </div>
+    </nav>
+
+    <!-- HERO PAGE -->
+    <div id="heroPage" class="hero-page">
+      <!-- Particle canvas -->
+      <canvas id="particleCanvas" class="particle-canvas"></canvas>
+
+      <div class="bg-slides">
+        <div class="bg-slide s1"></div>
+        <div class="bg-slide s2"></div>
+        <div class="bg-slide s3"></div>
+        <div class="bg-slide s4"></div>
+        <div class="bg-slide s5"></div>
+      </div>
+      <div class="bg-overlay"></div>
+
+      <div class="hero-left">
+        <div class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          Powered by TensorFlow.js · Runs in browser
+          <span class="scan-count-badge">⬡ 1,247 scans</span>
+        </div>
+        <h1>Identify any<br /><em>scrap material</em><br />instantly</h1>
+        <p class="hero-sub">
+          Drop a photo — ferrous, non-ferrous, e-waste or plastic. Get full
+          material analysis, market value, radar comparison and handling
+          protocol.
+        </p>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hs-val" data-count="4" data-suffix="">4</div>
+            <div class="hs-label">Material types</div>
+          </div>
+          <div class="hs-div"></div>
+          <div class="hero-stat">
+            <div class="hs-val" data-count="100" data-suffix="%">100%</div>
+            <div class="hs-label">Local · no upload</div>
+          </div>
+          <div class="hs-div"></div>
+          <div class="hero-stat">
+            <div class="hs-val">AI</div>
+            <div class="hs-label">MobileNet v2</div>
+          </div>
+          <div class="hs-div"></div>
+          <div class="hero-stat">
+            <div class="hs-val">₹</div>
+            <div class="hs-label">Market data</div>
+          </div>
+        </div>
+
+        <!-- Processing pipeline -->
+        <div class="pipeline">
+          <div class="pipe-step">
+            <div class="pipe-icon">📸</div>
+            <div class="pipe-label">Upload</div>
+          </div>
+          <div class="pipe-line"><div class="pipe-line-fill"></div></div>
+          <div class="pipe-step">
+            <div class="pipe-icon">🧠</div>
+            <div class="pipe-label">MobileNet Inference</div>
+          </div>
+          <div class="pipe-line">
+            <div class="pipe-line-fill" style="animation-delay: 0.5s"></div>
+          </div>
+          <div class="pipe-step">
+            <div class="pipe-icon">📊</div>
+            <div class="pipe-label">Full Report</div>
+          </div>
+        </div>
+
+        <div class="dev-pill">
+          <div class="dev-pill-avatar">VS</div>
+          <div>
+            <div class="dev-pill-name">Vaibhav Singh</div>
+            <div class="dev-pill-inst">
+              IIT (ISM) Dhanbad · B.Tech · Convybelt Project · 2026
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <label class="upload-card" id="dropZone" for="fileIn">
+          <div class="uc-default">
+            <div class="uc-icon">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div class="uc-title">Drop your scrap image</div>
+            <div class="uc-sub">or click anywhere to browse</div>
+            <div class="uc-formats">
+              <span>JPG</span><span>PNG</span><span>WEBP</span>
+            </div>
+            <div class="uc-features">
+              <div class="uc-feat">
+                <span class="uc-check">✓</span>No data leaves your device
+              </div>
+              <div class="uc-feat">
+                <span class="uc-check">✓</span>Works offline after first load
+              </div>
+              <div class="uc-feat">
+                <span class="uc-check">✓</span>Instant AI classification
+              </div>
+              <div class="uc-feat">
+                <span class="uc-check">✓</span>Full material report with charts
+              </div>
+            </div>
+          </div>
+          <div class="uc-preview">
+            <div class="scan-wrap">
+              <img id="previewImg" src="" alt="" />
+              <div class="scan-line" id="scanLine"></div>
+              <div class="scan-overlay" id="scanOverlay">
+                <div class="scan-corners">
+                  <span class="sc tl"></span>
+                  <span class="sc tr"></span>
+                  <span class="sc bl"></span>
+                  <span class="sc br"></span>
+                </div>
+                <div class="scan-status" id="scanStatus">
+                  Initializing scanner...
+                </div>
+              </div>
+            </div>
+            <div class="uc-preview-meta">
+              <span id="previewName"></span>
+              <span id="previewSize"></span>
+            </div>
+            <div class="uc-change">click to change image</div>
+          </div>
+        </label>
+        <input type="file" id="fileIn" accept="image/*" style="display: none" />
+      </div>
+
+      <!-- Recently scanned ticker -->
+      <div class="ticker-wrap">
+        <div class="ticker-label">RECENT SCANS</div>
+        <div class="ticker-track">
+          <div class="ticker-inner">
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #60a5fa"></span>HMS1
+              Ferrous · Dhanbad · 2 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #34d399"></span>Copper
+              Wire #1 · Mumbai · 5 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #f472b6"></span>E-Waste
+              PCB Grade A · Delhi · 8 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #fb923c"></span>PET
+              Plastic Code 1 · Chennai · 11 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #60a5fa"></span>Cast
+              Iron · Kolkata · 14 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #34d399"></span>Brass
+              Honey · Ahmedabad · 17 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #f472b6"></span>Mixed
+              E-Waste · Pune · 20 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #60a5fa"></span
+              >Shredded Steel · Surat · 23 min ago</span
+            >
+            <!-- duplicate for seamless loop -->
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #60a5fa"></span>HMS1
+              Ferrous · Dhanbad · 2 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #34d399"></span>Copper
+              Wire #1 · Mumbai · 5 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #f472b6"></span>E-Waste
+              PCB Grade A · Delhi · 8 min ago</span
+            >
+            <span class="tick-item"
+              ><span class="tick-dot" style="background: #fb923c"></span>PET
+              Plastic Code 1 · Chennai · 11 min ago</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYZING PAGE -->
+    <div id="analyzePage" class="analyze-page" style="display: none">
+      <div class="analyze-wrap">
+        <div class="analyze-spinner"></div>
+        <div class="analyze-msg" id="analyzeMsg">
+          Extracting feature vectors...
+        </div>
+        <div class="analyze-sub">Running MobileNet inference</div>
+      </div>
+    </div>
+
+    <!-- RESULT PAGE -->
+    <div id="resultPage" class="result-page" style="display: none">
+      <div class="res-topbar">
+        <div class="res-topbar-left">
+          <button class="back-btn" onclick="goHome()">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Scan another
+          </button>
+          <div class="res-badge" id="catBadge"></div>
+          <span class="scan-num" id="scanNum">Scan #1</span>
+        </div>
+        <div class="res-topbar-right">
+          <div class="override-row" id="overrideRow">
+            <span class="override-label">CORRECT TO:</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="res-body">
+        <!-- ROW 1 -->
+        <div class="row-1">
+          <div class="r1-img-col">
+            <div class="res-img-wrap">
+              <img id="resultImg" src="" alt="" />
+              <div class="res-img-footer">
+                <span id="imgFilename"></span>
+                <span id="imgConf"></span>
+              </div>
+            </div>
+            <div class="res-tags" id="tags"></div>
+          </div>
+          <div class="r1-info-col">
+            <div class="res-title" id="catTitle"></div>
+            <div class="res-sub" id="catSub"></div>
+            <div class="res-desc" id="catDesc"></div>
+            <div id="hazard"></div>
+          </div>
+          <div class="r1-gauge-col">
+            <div class="gauge-card zoomable" ondblclick="openModal(this)">
+              <div class="gauge-label-top">Detection Confidence</div>
+              <div class="gauge-wrap">
+                <svg
+                  viewBox="0 0 130 130"
+                  style="width: 100%; height: 100%; display: block"
+                >
+                  <circle
+                    cx="65"
+                    cy="65"
+                    r="54"
+                    fill="none"
+                    stroke="rgba(255,255,255,0.05)"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <circle
+                    cx="65"
+                    cy="65"
+                    r="54"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray="339"
+                    stroke-dashoffset="339"
+                    id="gaugeFill"
+                    transform="rotate(-90 65 65)"
+                  />
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-pct" id="gaugePct">--</div>
+                  <div class="gauge-note" id="gaugeMsg"></div>
+                </div>
+              </div>
+              <div class="zoom-hint">double-click to expand</div>
+            </div>
+          </div>
+          <div class="r1-stats-col">
+            <div class="stats-grid" id="statsGrid"></div>
+          </div>
+        </div>
+
+        <!-- ROW 2 -->
+        <div class="row-2">
+          <div class="chart-card zoomable" ondblclick="openModal(this)">
+            <div class="chart-head">
+              <span class="chart-icon">◉</span>
+              <span class="chart-title">Material Intelligence Radar</span>
+              <span class="chart-sub"
+                >5-axis comparison across all categories</span
+              >
+            </div>
+            <div class="radar-wrap">
+              <svg
+                id="radarSvg"
+                width="260"
+                height="240"
+                viewBox="0 0 260 240"
+              ></svg>
+              <div class="radar-legend" id="radarLegend"></div>
+            </div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="chart-card zoomable" ondblclick="openModal(this)">
+            <div class="chart-head">
+              <span class="chart-icon">▪</span>
+              <span class="chart-title">Market Value Comparison</span>
+              <span class="chart-sub">₹ per kg across scrap categories</span>
+            </div>
+            <div class="price-chart" id="priceChart"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="chart-card zoomable" ondblclick="openModal(this)">
+            <div class="chart-head">
+              <span class="chart-icon">◆</span>
+              <span class="chart-title">Environmental Impact</span>
+              <span class="chart-sub">Recycling vs virgin production</span>
+            </div>
+            <div class="env-chart" id="envChart"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+        </div>
+
+        <!-- ROW 3 -->
+        <div class="row-3">
+          <div class="icard zoomable" ondblclick="openModal(this)">
+            <div class="icard-head">
+              <span class="icard-icon">◈</span
+              ><span class="icard-title">Material Properties</span>
+            </div>
+            <div id="propList"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="icard zoomable" ondblclick="openModal(this)">
+            <div class="icard-head">
+              <span class="icard-icon">→</span
+              ><span class="icard-title">Handling Protocol</span>
+            </div>
+            <div id="stepList"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="icard zoomable" ondblclick="openModal(this)">
+            <div class="icard-head">
+              <span class="icard-icon">≋</span
+              ><span class="icard-title">AI Detection Signals</span>
+            </div>
+            <div id="detBars"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="icard zoomable" ondblclick="openModal(this)">
+            <div class="icard-head">
+              <span class="icard-icon">◎</span
+              ><span class="icard-title">Recycled Output Uses</span>
+            </div>
+            <div class="chips" id="useCases"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+        </div>
+
+        <!-- ROW 4 -->
+        <div class="row-meta">
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: var(--dim);
+                  border-color: var(--bdr);
+                  color: var(--ac);
+                "
+              >
+                ⬡
+              </div>
+              <div>
+                <div class="meta-title" id="phaseTitle">Phase Diagram</div>
+                <div class="meta-sub" id="phaseSystem"></div>
+              </div>
+            </div>
+            <div id="phaseContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: var(--dim);
+                  border-color: var(--bdr);
+                  color: var(--ac);
+                "
+              >
+                ◫
+              </div>
+              <div>
+                <div class="meta-title">Microstructure</div>
+                <div class="meta-sub" id="microDominant"></div>
+              </div>
+            </div>
+            <div id="microContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: var(--dim);
+                  border-color: var(--bdr);
+                  color: var(--ac);
+                "
+              >
+                🌡
+              </div>
+              <div>
+                <div class="meta-title">Thermal Processing Window</div>
+                <div class="meta-sub" id="thermalSub"></div>
+              </div>
+            </div>
+            <div id="thermalContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: var(--dim);
+                  border-color: var(--bdr);
+                  color: var(--ac);
+                "
+              >
+                ⚗
+              </div>
+              <div>
+                <div class="meta-title">Alloy Composition</div>
+                <div class="meta-sub">Estimated elemental breakdown</div>
+              </div>
+            </div>
+            <div id="compContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+        </div>
+
+        <!-- ROW 5 -->
+        <div class="row-meta">
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: var(--dim);
+                  border-color: var(--bdr);
+                  color: var(--ac);
+                "
+              >
+                🔥
+              </div>
+              <div>
+                <div class="meta-title">Furnace Compatibility</div>
+                <div class="meta-sub">Processing route suitability</div>
+              </div>
+            </div>
+            <div id="furnaceContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: rgba(239, 68, 68, 0.15);
+                  border-color: rgba(239, 68, 68, 0.4);
+                  color: #ef4444;
+                "
+              >
+                ⚠
+              </div>
+              <div>
+                <div class="meta-title">Contamination Risk</div>
+                <div class="meta-sub">Metallurgical impact analysis</div>
+              </div>
+            </div>
+            <div id="contamContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: var(--dim);
+                  border-color: var(--bdr);
+                  color: var(--ac);
+                "
+              >
+                ◈
+              </div>
+              <div>
+                <div class="meta-title">Recycling Grade Ladder</div>
+                <div class="meta-sub">Quality grades + market value</div>
+              </div>
+            </div>
+            <div id="gradeContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+          <div class="meta-card zoomable" ondblclick="openModal(this)">
+            <div class="meta-head">
+              <div
+                class="meta-icon"
+                style="
+                  background: rgba(52, 211, 153, 0.15);
+                  border-color: rgba(52, 211, 153, 0.4);
+                  color: #34d399;
+                "
+              >
+                🌿
+              </div>
+              <div>
+                <div class="meta-title">Carbon Footprint Calculator</div>
+                <div class="meta-sub">Enter weight to calculate impact</div>
+              </div>
+            </div>
+            <div id="carbonContent"></div>
+            <div class="zoom-hint">double-click to expand</div>
+          </div>
+        </div>
+
+        <!-- ROW 6: Standards -->
+        <div class="standards-bar" id="standardsBar"></div>
+
+        <!-- FOOTER -->
+        <div class="res-footer">
+          <div class="dev-card">
+            <div class="dev-glow"></div>
+            <div class="dev-left">
+              <div class="dev-avatar">VS</div>
+              <div class="dev-info">
+                <div class="dev-label">Developed by</div>
+                <div class="dev-name">Vaibhav Singh</div>
+                <div class="dev-role">B.Tech · IIT (ISM) Dhanbad</div>
+              </div>
+            </div>
+            <div class="dev-right">
+              <div class="dev-badges">
+                <span class="dev-badge accent">Convybelt Project</span>
+                <span class="dev-badge">IIT (ISM) Dhanbad</span>
+                <span class="dev-badge">Scrap Intelligence</span>
+                <span class="dev-badge">2026</span>
+              </div>
+              <div class="dev-tagline">
+                <span class="dev-pulse"></span>
+                ScrapScan · AI Scrap Material Identifier · MobileNet v2 ·
+                TensorFlow.js
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZOOM MODAL -->
+    <div id="zoomOverlay" class="zoom-overlay" onclick="closeModal()">
+      <div class="zoom-modal" id="zoomModal" onclick="event.stopPropagation()">
+        <button class="zoom-close" onclick="closeModal()">✕ Close</button>
+        <div class="zoom-content" id="zoomContent"></div>
+      </div>
+    </div>
+
+    <!-- CHAT FAB -->
+    <button
+      class="chat-fab"
+      id="chatFab"
+      onclick="toggleChat()"
+      style="display: none"
+    >
+      <div class="chat-fab-ring"></div>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+        />
+      </svg>
+      <span class="chat-fab-label">Ask AI</span>
+      <span class="chat-fab-dot"></span>
+    </button>
+
+    <!-- CHAT PANEL -->
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-avatar" id="chatAvatar">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4l3 3" />
+            </svg>
+          </div>
+          <div>
+            <div class="chat-name">ScrapScan AI</div>
+            <div class="chat-status">
+              <span class="chat-online-dot"></span>Industry Expert · Online
+            </div>
+          </div>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="chat-context" id="chatContext"></div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-sugg-wrap" id="chatSuggWrap">
+        <div class="chat-sugg-list" id="chatSuggList"></div>
+      </div>
+      <div class="chat-input-area">
+        <div class="chat-input-box">
+          <textarea
+            id="chatInput"
+            class="chat-textarea"
+            placeholder="Ask about pricing, safety, buyers..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="resizeInput(this)"
+          >
+          </textarea>
+          <button class="chat-send-btn" id="chatSendBtn" onclick="sendMsg()">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+        <div class="chat-powered">
+          Powered by OpenRouter · Context-aware · Indian Industry Expert
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/chat.js"></script>
+  </body>
+</html>

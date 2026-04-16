@@ -7,7 +7,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:1100', 'https://scrapscan.onrender.com']
+  origin: ['http://localhost:1100', 'https://scrapscan-1.onrender.com']
 }));
 
 app.use(express.json());
